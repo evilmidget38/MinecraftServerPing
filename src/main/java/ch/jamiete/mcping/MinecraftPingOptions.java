@@ -31,7 +31,7 @@ package ch.jamiete.mcping;
 /**
  * Storage class for {@link MinecraftPing} options.
  */
-public class MinecraftPingOptions {
+public class MinecraftPingOptions implements Cloneable {
 
     private String hostname;
     private int port = 25565;
@@ -74,4 +74,8 @@ public class MinecraftPingOptions {
         return this.charset;
     }
 
+    @Override
+    public MinecraftPingOptions clone() {
+        return new MinecraftPingOptions().setHostname(this.getHostname()).setCharset(this.getCharset()).setPort(this.getPort()).setTimeout(this.getTimeout());
+    }
 }

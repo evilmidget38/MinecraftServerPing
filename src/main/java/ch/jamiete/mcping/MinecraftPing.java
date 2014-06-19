@@ -34,9 +34,18 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import com.google.gson.Gson;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 public class MinecraftPing {
+    // JSONParser is not thread-safe.
+    private static final ThreadLocal<JSONParser> JSON_PARSER = new ThreadLocal<JSONParser>() {
+        @Override
+        public JSONParser initialValue() {
+            return new JSONParser();
+        }
+    };
 
     /**
      * Fetches a {@link MinecraftPingReply} for the supplied hostname.
@@ -46,8 +55,8 @@ public class MinecraftPing {
      * @return {@link MinecraftPingReply}
      * @throws IOException 
      */
-    public MinecraftPingReply getPing(final String hostname) throws IOException {
-        return this.getPing(new MinecraftPingOptions().setHostname(hostname));
+    public static MinecraftPingReply ping(final String hostname) throws IOException, ParseException {
+        return ping(new MinecraftPingOptions().setHostname(hostname));
     }
 
     /**
@@ -57,7 +66,7 @@ public class MinecraftPing {
      * @return {@link MinecraftPingReply}
      * @throws IOException 
      */
-    public MinecraftPingReply getPing(final MinecraftPingOptions options) throws IOException {
+    public static MinecraftPingReply ping(final MinecraftPingOptions options) throws IOException, ParseException {
         MinecraftPingUtil.validate(options.getHostname(), "Hostname cannot be null.");
         MinecraftPingUtil.validate(options.getPort(), "Port cannot be null.");
 
@@ -124,7 +133,7 @@ public class MinecraftPing {
         in.close();
         socket.close();
 
-        return new Gson().fromJson(json, MinecraftPingReply.class);
+        return new MinecraftPingReply((JSONObject) JSON_PARSER.get().parse(json));
     }
 
 }

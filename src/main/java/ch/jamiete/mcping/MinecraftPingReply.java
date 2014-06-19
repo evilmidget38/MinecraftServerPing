@@ -28,6 +28,11 @@
  */
 package ch.jamiete.mcping;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -36,12 +41,17 @@ import java.util.List;
  * https://gist.github.com/thinkofdeath/6927216
  */
 public class MinecraftPingReply {
+    private final String description;
+    private final Players players;
+    private final Version version;
+    private final String favicon;
 
-    private String description;
-    private Players players;
-    private Version version;
-    private String favicon;
-
+    public MinecraftPingReply(JSONObject object) {
+        description = (String) object.get("description");
+        players = new Players((JSONObject) object.get("players"));
+        version = new Version((JSONObject) object.get("version"));
+        favicon = (String) object.get("favicon");
+    }
     /**
      * @return the MOTD
      */
@@ -71,10 +81,24 @@ public class MinecraftPingReply {
     }
 
     public class Players {
-        private int max;
-        private int online;
-        private List<Player> sample;
+        private final int max;
+        private final int online;
+        private final List<Player> sample;
 
+        public Players(JSONObject object) {
+            max = ((Number) object.get("max")).intValue();
+            online = ((Number) object.get("online")).intValue();
+            List<Player> players = new ArrayList<Player>();
+            JSONArray sample = (JSONArray) object.get("sample");
+            if (sample != null) {
+                for (Object player : sample) {
+                    if (player instanceof JSONObject) {
+                        players.add(new Player((JSONObject) player));
+                    }
+                }
+            }
+            this.sample = Collections.unmodifiableList(players);
+        }
         /**
          * @return Maximum player count
          */
@@ -98,9 +122,13 @@ public class MinecraftPingReply {
     }
 
     public class Player {
-        private String name;
-        private String id;
+        private final String name;
+        private final String id;
 
+        public Player(JSONObject object) {
+            name = (String) object.get("name");
+            id = (String) object.get("id");
+        }
         /**
          * @return Name of player
          */
@@ -118,9 +146,13 @@ public class MinecraftPingReply {
     }
 
     public class Version {
-        private String name;
-        private int protocol;
+        private final String name;
+        private final int protocol;
 
+        public Version(JSONObject object) {
+            name = (String) object.get("name");
+            protocol = ((Number) object.get("protocol")).intValue();
+        }
         /**
          * @return Version name (ex: 13w41a)
          */
